@@ -1,3 +1,12 @@
 import { Routes } from '@angular/router';
+import { TopicsComponent } from '../pages/topics/topics.component';
 
-export const routes: Routes = [];
+const topicsPage = {
+  path: 'topics',
+  component: TopicsComponent,
+};
+
+export const routes: Routes = [
+  { path: '', component: TopicsComponent },
+  topicsPage,
+];
