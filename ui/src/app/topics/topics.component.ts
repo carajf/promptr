@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+} from '@angular/core';
 import { MatFormField, MatInput, MatLabel } from '@angular/material/input';
 import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
@@ -11,6 +16,7 @@ import {
 } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatOption, MatSelect } from '@angular/material/select';
+import { QuestionService } from '../questions/question.service';
 
 @Component({
   selector: 'app-topics',
@@ -31,6 +37,7 @@ import { MatOption, MatSelect } from '@angular/material/select';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class TopicsComponent implements OnInit {
+  readonly questionService = inject(QuestionService);
   readonly maxNumberOfQuestions: number = 20;
 
   readonly form = new FormGroup({
@@ -76,8 +83,12 @@ export class TopicsComponent implements OnInit {
     this.subtopics?.push(new FormControl<string>('', { nonNullable: true }));
   }
 
-  onSubmit(): void {
-    alert('Form submitted!');
-    console.log(this.form.value);
+  async onSubmit(): Promise<void> {
+    console.log('Form submitted!');
+    await this.questionService.generateQuestions(
+      this.form.value.topic!,
+      this.form.value.numberOfQuestions!,
+      this.form.value.subtopics,
+    );
   }
 }
