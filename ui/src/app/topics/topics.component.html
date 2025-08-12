@@ -14,7 +14,7 @@
       </mat-form-field>
     }
   </div>
-  <button (click)="addTopicInput()" mat-stroked-button>
+  <button (click)="addTopicInput()" mat-stroked-button type="button">
     <mat-icon aria-hidden="false" aria-label="Add icon"
               fontIcon="add"/>
     Add subtopic
@@ -34,8 +34,8 @@
 
   <mat-divider></mat-divider>
 
-  <button [disabled]="!form.valid" class="vertical-center" mat-stroked-button type="submit"
-  >Submit
+  <button [disabled]="!form.valid" class="vertical-center" mat-flat-button type="submit"
+  >Generate questions
   </button>
 </form>
 

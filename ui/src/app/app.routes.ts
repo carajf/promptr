@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-import { TopicsComponent } from '../pages/topics/topics.component';
+import { TopicsComponent } from './topics/topics.component';
 
 const topicsPage = {
   path: 'topics',
