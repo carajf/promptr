@@ -3,7 +3,13 @@
 html, body { height: 100%; }
 
 body {
+  display: flex;
+  flex-direction: column;
+  font-family: 'Patrick Hand', cursive;
   margin: 0;
-  font-family: Roboto, "Helvetica Neue", sans-serif;
-  padding: 20%;
+  padding: 5rem 20%;
+}
+
+mat-divider:not([vertical]) {
+  margin-block: 2rem;
 }

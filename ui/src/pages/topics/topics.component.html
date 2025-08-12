@@ -1,14 +1,41 @@
-<div>
-  <h1>Promptr</h1>
-  <p>The AI Quiz Generator</p>
-</div>
-
-<hr>
-
-<div>
-  <p>Enter a topic (eg. "Angular")</p>
-  <mat-form-field>
+<form (ngSubmit)="onSubmit()" [formGroup]="form">
+  <p>Topic (e.g. "Angular"):</p>
+  <mat-form-field appearance="outline">
     <mat-label>Topic</mat-label>
-    <input matInput>
+    <input formControlName="topic" matInput placeholder="Enter topic"/>
   </mat-form-field>
-</div>
+
+  <p>Sub-topics (e.g. "Reactive forms"):</p>
+  <div class="topics">
+    @for (ctrl of subtopics.controls; track $index; let i = $index) {
+      <mat-form-field appearance="outline">
+        <mat-label>Sub-topic {{ i + 1 }}</mat-label>
+        <input matInput [formControl]="ctrl" placeholder="Enter sub-topic"/>
+      </mat-form-field>
+    }
+  </div>
+  <button (click)="addTopicInput()" mat-stroked-button>
+    <mat-icon aria-hidden="false" aria-label="Add icon"
+              fontIcon="add"/>
+    Add subtopic
+  </button>
+
+  <mat-divider></mat-divider>
+
+  <p>Number of questions to generate:</p>
+  <mat-form-field>
+    <mat-label>Number of questions</mat-label>
+    <mat-select formControlName="numberOfQuestions">
+      @for (number of numberOfQuestions; track $index) {
+        <mat-option [value]="number">{{ number }}</mat-option>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-divider></mat-divider>
+
+  <button [disabled]="!form.valid" class="vertical-center" mat-stroked-button type="submit"
+  >Submit
+  </button>
+</form>
+

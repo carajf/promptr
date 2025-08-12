@@ -1,0 +1,18 @@
+.topics {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.vertical-center {
+  display: block;
+  margin: 0 auto;
+}
+
+mat-form-field {
+  width: 100%;
+}
+
+p {
+  margin-top: 0;
+}
