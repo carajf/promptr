@@ -1,0 +1,55 @@
+@let selectedVersionId = selectedQuestionVersionId();
+
+<h2>Questions</h2>
+
+<div class="questions-layout">
+  @if (this.questionService.state().loading) {
+    <mat-spinner class="loading"></mat-spinner>
+  }
+  @if (!this.questionService.state().loading && questions().length === 0) {
+    <p>Nothing to show.</p>
+  }
+
+  <nav aria-label="Questions navigation">
+    <mat-nav-list>
+      <mat-list-item (click)="selectQuestion(q.id)"
+                     *ngFor="let q of questions(); let i = index; trackBy: trackByQuestionId"
+                     [class.selected]="selectedQuestionId() === q.id"
+                     class="question-nav-item"
+                     role="button"
+                     tabindex="0">
+        <mat-chip-listbox>
+          <mat-chip-option
+            [selected]="selectedQuestionId() === q.id"
+          >
+            {{ q.id }}
+          </mat-chip-option>
+        </mat-chip-listbox>
+      </mat-list-item>
+    </mat-nav-list>
+  </nav>
+
+  <section *ngIf="selectedQuestion() as q" class="question-block">
+    <h3>Question {{ q.id }}</h3>
+
+    <mat-tab-group (selectedTabChange)="selectQuestionVersion($event)"
+                   *ngFor="let v of selectedQuestion()?.versions; trackBy: trackByVersionId"
+                   [selectedIndex]="selectedVersionIndex()" class="full-height">
+      <mat-tab label="{{v.versionId}}">
+        <div class="question-block">
+          <markdown [data]="v.question" clipboard lineHighlight lineNumbers></markdown>
+            <mat-form-field appearance="outline"
+                            class="full-width">
+              <mat-label>Your answer</mat-label>
+            </mat-form-field>
+            <div class="action-buttons">
+            </div>
+        </div>
+
+        <mat-divider></mat-divider>
+      </mat-tab>
+    </mat-tab-group>
+  </section>
+</div>
+
+<mat-divider></mat-divider>
