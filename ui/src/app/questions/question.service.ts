@@ -1,11 +1,14 @@
 import { inject, Injectable, signal } from '@angular/core';
 import {
+  ANSWERS_STORAGE_KEY,
   genId,
   Question,
   QuestionResponse,
   QUESTIONS_STORAGE_KEY,
   QuestionVersion,
+  testAnswers,
   testQuestions,
+  UserAnswer,
 } from './question.schema';
 import { Router } from '@angular/router';
 import { QUESTIONS_PATH } from '../app.routes';
@@ -94,6 +97,57 @@ export class QuestionService {
   async navigateToQuestions() {
     await this.router.navigate([QUESTIONS_PATH]);
   }
+
+  // Answers
+  getAnswerById(answerId: UserAnswer['id']): UserAnswer | undefined {
+    return this.state().answers.find((answer) => answer.id === answerId);
+  }
+
+  saveAnswer(answer: UserAnswer): void {
+    const existingIndex = this.state().answers.findIndex(
+      (a) => a.id === answer.id,
+    );
+
+    let updatedAnswers;
+
+    if (existingIndex > -1) {
+      // overwrite
+      updatedAnswers = [...this.state().answers];
+      updatedAnswers[existingIndex] = answer;
+    } else {
+      // add
+      updatedAnswers = [...this.state().answers, answer];
+    }
+
+    this.patchState({ answers: updatedAnswers });
+  }
+
+  async checkAnswer(
+    questionVersionId: QuestionVersion['versionId'],
+    answerId: UserAnswer['id'],
+  ) {
+    const questionVersion =
+      this.getQuestionVersionByVersionId(questionVersionId);
+    const answer = this.getAnswerById(answerId);
+
+    // TODO Add safeguards around question/version/answer match
+    if (!questionVersion || !answer) {
+      throw new Error(
+        'Something went wrong getting the question or answer to be checked',
+      );
+    }
+
+    const result = await this.apiService.markAnswer(questionVersion, answer);
+
+    const checkedAnswer = {
+      ...answer,
+      status: result.status,
+      feedback: result.feedback,
+    };
+    // Update answer feedback
+    this.saveAnswer(checkedAnswer);
+  }
+
   private patchQuestion(id: string, updatedQuestion: Question): void {
     const questions = this._state().questions.map((q) =>
       q.id === id ? updatedQuestion : q,
@@ -139,6 +193,15 @@ export class QuestionService {
     }
   }
 
+  // TODO Save answers with a 'save' button
+  private persistAnswersToSession(answers: UserAnswer[]): void {
+    try {
+      sessionStorage.setItem(ANSWERS_STORAGE_KEY, JSON.stringify(answers));
+    } catch (err) {
+      console.warn('Failed to persist answers to sessionStorage', err);
+    }
+  }
+
   private loadQuestionsFromSession(): Question[] {
     try {
       const stored = sessionStorage.getItem(QUESTIONS_STORAGE_KEY);
@@ -150,11 +213,26 @@ export class QuestionService {
     }
   }
 
+  private loadAnswersFromSession(): UserAnswer[] {
+    try {
+      const stored = sessionStorage.getItem(ANSWERS_STORAGE_KEY);
+      if (!stored) return [];
+      return JSON.parse(stored) as UserAnswer[];
+    } catch (err) {
+      console.warn('Failed to load answers from sessionStorage', err);
+      return [];
+    }
+  }
+
   private initializeStateFromStorage(): void {
     if (this._state().questions.length === 0) {
       const storedQuestions = this.loadQuestionsFromSession();
+      const storedAnswers = this.loadAnswersFromSession();
       if (storedQuestions.length > 0) {
         this.patchState({ questions: storedQuestions });
+      }
+      if (storedAnswers.length > 0) {
+        this.patchState({ answers: storedAnswers });
       }
     }
   }

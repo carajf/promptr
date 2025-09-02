@@ -1,6 +1,7 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   OnDestroy,
   signal,
@@ -11,6 +12,7 @@ import {
   genId,
   Question,
   QuestionVersion,
+  UserAnswer,
 } from './question.schema';
 import {
   debounceTime,
@@ -28,6 +30,8 @@ import { MatProgressSpinner } from '@angular/material/progress-spinner';
 import { MarkdownComponent } from 'ngx-markdown';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatTab, MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { FeedbackComponent } from '../feedback/feedback.component';
+
 @Component({
   selector: 'app-question',
   imports: [
@@ -49,6 +53,7 @@ import { MatTab, MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
     MatTabGroup,
     MatTab,
     ReactiveFormsModule,
+    FeedbackComponent,
     NgForOf,
   ],
   templateUrl: './question.component.html',
@@ -63,6 +68,8 @@ export class QuestionComponent implements OnDestroy {
   );
   // RxJS
   private readonly destroy$ = new Subject<void>();
+  answerControl = new FormControl('');
+
   constructor() {
     // Init questions from state
     this.questionService.loading$
@@ -92,12 +99,29 @@ export class QuestionComponent implements OnDestroy {
           }
         }
       });
+
+    // Subscribe to answer changes
+    this.answerControl.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(1000),
+        distinctUntilChanged(),
+      )
+      .subscribe((value) => this.saveAnswer(value));
+
+    // Pre-load answer if already written
+    effect(() => {
+      this.answerControl.setValue(this.currentAnswer()?.text ?? '', {
+        emitEvent: false, // <- prevents saving immediately
+      });
+    });
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
+
   questions = computed((): Question[] => {
     return this.questionService.state().questions;
   });
@@ -121,6 +145,30 @@ export class QuestionComponent implements OnDestroy {
     const idx = q.versions.findIndex((v) => v.versionId === vid);
     return idx >= 0 ? idx : 0;
   });
+
+  currentAnswer = computed(() => {
+    const vid = this.selectedQuestionVersionId();
+    if (!vid) return undefined;
+    return this.questionService
+      .state()
+      .answers.find((a) => a.questionVersionId === vid);
+  });
+
+  getLatestAnswerForQuestion(question: Question): UserAnswer | undefined {
+    const answers = this.questionService.state().answers;
+    if (!question.versions || question.versions.length === 0) return undefined;
+
+    // Prefer answer for the newest version (last in array)
+    const lastVersionId =
+      question.versions[question.versions.length - 1].versionId;
+    const forLast = answers.find(
+      (a) =>
+        a.questionId === question.id && a.questionVersionId === lastVersionId,
+    );
+    if (forLast) return forLast;
+
+    // Otherwise return any answer for that question (fallback)
+    return answers.find((a) => a.questionId === question.id);
   }
 
   trackByQuestionId(_: number, q: Question) {
@@ -145,5 +193,30 @@ export class QuestionComponent implements OnDestroy {
     if (versions && versions.length > idx) {
       this.selectedQuestionVersionId.set(versions[idx].versionId);
     }
+  }
+
+  saveAnswer(value: string | null) {
+    if (value) {
+      // Overwrite existing answer if question version has an answer
+      const existingAnswer = this.currentAnswer();
+      const answerId = existingAnswer ? existingAnswer.id : genId();
+      this.questionService.saveAnswer({
+        id: answerId,
+        questionId: this.selectedQuestionId()!,
+        questionVersionId: this.selectedQuestionVersionId()!,
+        text: value,
+        status: 'unchecked',
+      });
+    }
+  }
+
+  async checkAnswer() {
+    const current = this.currentAnswer();
+    const selectedQuestionVersionId = this.selectedQuestionVersionId();
+    if (!selectedQuestionVersionId || !current) return;
+    await this.questionService.checkAnswer(
+      selectedQuestionVersionId,
+      current.id,
+    );
   }
 }

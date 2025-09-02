@@ -1,4 +1,5 @@
 @let selectedVersionId = selectedQuestionVersionId();
+@let answer = currentAnswer();
 
 <h2>Questions</h2>
 
@@ -20,6 +21,8 @@
                      tabindex="0">
         <mat-chip-listbox>
           <mat-chip-option
+            [class.chip-correct]="getLatestAnswerForQuestion(q)?.status == 'correct'"
+            [class.chip-incorrect]="getLatestAnswerForQuestion(q)?.status == 'incorrect'"
             [selected]="selectedQuestionId() === q.id"
           >
             {{ q.id }}
@@ -38,15 +41,26 @@
       <mat-tab label="{{v.versionId}}">
         <div class="question-block">
           <markdown [data]="v.question" clipboard lineHighlight lineNumbers></markdown>
+
+          <!-- Only show answer submission if not already submitted -->
+          @if (!answer?.feedback) {
             <mat-form-field appearance="outline"
                             class="full-width">
               <mat-label>Your answer</mat-label>
+              <textarea [formControl]="answerControl" matInput rows="6"></textarea>
             </mat-form-field>
             <div class="action-buttons">
+              <button (click)="checkAnswer()" mat-flat-button>Check</button>
             </div>
+          }
         </div>
 
         <mat-divider></mat-divider>
+
+        <!--  Feedback  -->
+        @if (selectedVersionId && selectedVersionId === v.versionId) {
+          <app-feedback [questionVersionId]="selectedVersionId"></app-feedback>
+        }
       </mat-tab>
     </mat-tab-group>
   </section>

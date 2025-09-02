@@ -26,6 +26,11 @@
   min-width: 0;
   display: block;
 }
+
+.hidden {
+  display: none;
+}
+
 // SIDE NAV
 
 .mdc-list {
@@ -36,11 +41,52 @@
   padding: 0;
   overflow: visible;
 }
+
+// CHIPS
+/* neutral: outlined look */
+.mat-chip.chip-neutral {
+  background: transparent;
+  color: #111827;
+  border: 2px solid #9ca3af;
+}
+
+/* filled states */
+.chip-correct {
+  background-color: #a5d6a7 !important; // light green 200
+  color: #1b5e20 !important;           // dark green text
+
+  &.mdc-evolution-chip--selected {
+    --mdc-chip-selected-label-text-color: white;
+    --mdc-chip-with-icon-selected-icon-color: white;
+    background-color: #388e3c !important; // dark green 600
+    color: white !important;
+  }
+}
+
+.chip-incorrect {
+  background-color: #ef9a9a !important; // light red 200
+  color: #b71c1c !important;
+
+  &.mdc-evolution-chip--selected {
+    --mdc-chip-selected-label-text-color: white;
+    --mdc-chip-with-icon-selected-icon-color: white;
+    background-color: #c62828 !important; // dark red 600
+    color: white !important;
+  }
+}
+
 // QUESTION AREA
 .action-buttons {
   display: flex;
   gap: 0.5rem;
   justify-content: center;
+}
+
+/* ensure textarea respects the container width and allows only vertical resize */
+textarea[matInput] {
+  width: 100%;
+  box-sizing: border-box; /* include padding/border in the width calculation */
+  resize: vertical;       /* only vertical resizing (you already had this behavior) */
 }
 
 h3 {

@@ -1,0 +1,51 @@
+@let a = answer();
+@let submitted = (a?.feedback != undefined || true) || a?.feedback;
+
+<h3>Feedback</h3>
+<section class="feedback-block">
+  <!--Disable card if no feedback yet (answer not submitted) -->
+  <mat-card appearance="raised">
+    <mat-card-content *ngIf="a"
+                      [class.disabled]="!submitted">
+
+      <mat-icon>{{ submitted ? 'assignment_turned_in' : 'edit' }}</mat-icon>
+      {{ answer()?.text }}
+    </mat-card-content>
+  </mat-card>
+
+  @if (!a || !submitted) {
+    <p>Submit your answer to see feedback.</p>
+  } @else {
+    <p>{{ a.feedback }}</p>
+    @for (message of discussion()?.messages; track message.id) {
+      @if (message.role === 'user') {
+        <mat-card class="user-message" appearance="outlined">
+          <mat-card-content>
+            {{ message.content }}
+          </mat-card-content>
+        </mat-card>
+      } @else {
+        <p>{{ message.content }}</p>
+      }
+    }
+    <div class="chat-input-container">
+      <form (ngSubmit)="sendMessage()">
+        <mat-form-field appearance="fill" class="chat-input">
+          <mat-label>Ask more...</mat-label>
+          <textarea
+            matInput
+            [formControl]="chatMessage"
+            cdkTextareaAutosize
+            cdkAutosizeMinRows="1"
+            cdkAutosizeMaxRows="8"
+          ></textarea>
+        </mat-form-field>
+        <button mat-mini-fab type="submit" class="send-btn">
+          <mat-icon>send</mat-icon>
+        </button>
+      </form>
+
+    </div>
+  }
+</section>
+

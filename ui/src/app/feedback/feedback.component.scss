@@ -1,0 +1,36 @@
+.feedback-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.disabled {
+  color: gray;
+  font-style: italic;
+}
+
+.chat-input-container {
+  position: relative;
+  width: 100%;
+}
+
+.chat-input {
+  width: 100%;
+}
+
+.send-btn {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+}
+
+.user-message {
+  margin-left: auto;
+  max-width: 75%;
+  background-color: cornflowerblue;
+}
+
+.mat-mdc-form-field {
+  padding-top: 2rem;
+  width: 100% !important;
+}
